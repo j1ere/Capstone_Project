@@ -1,0 +1,24 @@
+# Ignore Python cache files
+__pycache__/
+*.py[cod]
+
+# Ignore virtual environments
+.venv/
+env/
+venv/
+
+# Ignore temporary files and system files
+*.log
+*.tmp
+*.swp
+*.DS_Store
+
+# Ignore compiled files
+*.so
+*.dll
+*.exe
+*.class
+
+# Ignore IDE-specific files
+.idea/
+.vscode/
