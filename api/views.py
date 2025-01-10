@@ -1,37 +1,35 @@
-# from rest_framework.views import APIView
-# from rest_framework.response import Response
-# from rest_framework import status
-# from .models import Task
-# from .serializers import TaskSerializer
-# from rest_framework.permissions import IsAuthenticated
+from rest_framework import viewsets
+from rest_framework.response import Response
+from django.contrib.auth.models import User
+from django.contrib.auth import authenticate
+from rest_framework.authentication import TokenAuthentication, BasicAuthentication
+from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework import status
+from rest_framework.authtoken.models import Token
+from .serializers import UserSerializer
 
+class AuthViewSet(viewsets.ViewSet):
 
-# class TaskCreateView(APIView):
-#     permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]#allow anyone to register or login
 
-#     def post(self, request):
-#         data = request.data
-#         data['user'] = request.user.id  # Assign task to the authenticated user
+    """account registration"""
+    def register(self, request):
+        serializer = UserSerializer(data=request.data)
+     
+        if serializer.is_valid():
+            serializer.save()
+            return Response({"message":"user created successfully"}, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+      
+    """user login"""
+    def login(self, request):
+        username= request.data.get('username')
+        password= request.data.get('password')
 
-#         serializer = TaskSerializer(data=data)
-#         if serializer.is_valid():
-#             serializer.save()  # Save the task to the database
-#             return Response(serializer.data, status=status.HTTP_201_CREATED)
-#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        user = authenticate(username=username, password=password)
 
-
-# # class TaskListView(APIView):
-# #     permission_classes = [IsAuthenticated]
-
-# #     def get(self, request):
-# #         tasks = Task.objects.filter(user=request.user)  # Get tasks of the authenticated user
-# #         serializer = TaskSerializer(tasks, many=True)
-# #         return Response(serializer.data, status=status.HTTP_200_OK)
-
-# class TaskListView(APIView):
-#     permission_classes = [IsAuthenticated]
-
-#     def get(self, request):
-#         tasks = Task.objects.filter(user=request.user)
-#         serializer = TaskSerializer(tasks, many=True)
-#         return Response({"tasks": tasks}, status=status.HTTP_200_OK)
+        if user:
+            token, created = Token.objects.get_or_create(user=user)
+            return Response({"message":"login successful", 'token':token.key}, status=status.HTTP_200_OK)
+        return Response({"error":"incorrect username or password"}, status=status.HTTP_401_UNAUTHORIZED)
+    
