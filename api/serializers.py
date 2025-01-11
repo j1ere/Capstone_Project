@@ -42,8 +42,13 @@ class UserTasksSerializer(serializers.ModelSerializer):
     
     def validate_deadline(self, value):
         """ensure deadline is in the future if provided"""
-        from datetime import datetime
-        if value and value <= datetime.now():
+        from django.utils import timezone
+        #insure the value  `deadline` is timezone aware
+        if timezone.is_naive(value):
+            raise serializers.ValidationError("Deadline must include timezone information")
+        
+        #compare with the current time (timezone-aware)
+        if value and value <= timezone.now():
             return serializers.ValidationError("date must be in future")
         return value
     
