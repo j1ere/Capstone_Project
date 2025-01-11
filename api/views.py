@@ -6,7 +6,9 @@ from rest_framework.authentication import TokenAuthentication, BasicAuthenticati
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework import status
 from rest_framework.authtoken.models import Token
-from .serializers import UserSerializer
+from .serializers import *
+from .models import *
+
 
 class AuthViewSet(viewsets.ViewSet):
 
@@ -33,3 +35,22 @@ class AuthViewSet(viewsets.ViewSet):
             return Response({"message":"login successful", 'token':token.key}, status=status.HTTP_200_OK)
         return Response({"error":"incorrect username or password"}, status=status.HTTP_401_UNAUTHORIZED)
     
+
+class UserTasksModelViewSet(viewsets.ModelViewSet):
+    """models viewset for user tasks"""
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    queryset = UserTasks.objects.all()
+    serializer_class = UserTasksSerializer
+
+    def get_queryset(self):
+        """limit tasks to the authenticated user"""
+        return UserTasks.objects.filter(user=self.request.user)
+    
+    def perform_create(self, serializer):
+        """automatically assign the task to the logged in user"""
+        serializer.save(user=self.request.user)
+
+        
+   

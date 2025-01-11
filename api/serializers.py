@@ -2,7 +2,7 @@ from rest_framework import serializers
 from django.contrib.auth.models import User
 from rest_framework.validators import UniqueValidator
 from django.contrib.auth.password_validation import validate_password
-
+from .models import *
 
 class UserSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, validators=[validate_password])#ensures password is not exposed in API responses and is strong
@@ -20,3 +20,36 @@ class UserSerializer(serializers.ModelSerializer):
         user.save()
         return user
     
+
+class UserTasksSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = UserTasks
+        fields = ['user', 'task_title', 'task_category', 'task_priority', 'task_description', 'deadline','is_complete']
+
+    def validate_task_category(self, value):
+        """ensure that the task category is one of the allowed tasks"""
+        valid_categories = dict(UserTasks.TASK_TYPE).keys()
+        if value not in valid_categories:
+            raise serializers.ValidationError("invalid task category")
+        return value
+    
+    def validate_task_priority(self, value):
+        valid_priorities = dict(UserTasks.TASK_PRIO).keys()
+        if value not in valid_priorities:
+            raise serializers.ValidationError("invalid task priority")
+        return value
+    
+    def validate_deadline(self, value):
+        """ensure deadline is in the future if provided"""
+        from datetime import datetime
+        if value and value <= datetime.now():
+            return serializers.ValidationError("date must be in future")
+        return value
+    
+    def validate(self, data):
+        """perform crossfield validation"""
+        if data['task_priority'] == 'high' and not data['deadline']:
+            raise serializers.ValidationError("high priority tasks MUST have a deadline")
+        return data
+        
