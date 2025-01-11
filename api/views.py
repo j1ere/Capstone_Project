@@ -8,6 +8,7 @@ from rest_framework import status
 from rest_framework.authtoken.models import Token
 from .serializers import *
 from .models import *
+from django_filters.rest_framework import DjangoFilterBackend
 
 
 class AuthViewSet(viewsets.ViewSet):
@@ -44,6 +45,10 @@ class UserTasksModelViewSet(viewsets.ModelViewSet):
     queryset = UserTasks.objects.all()
     serializer_class = UserTasksSerializer
 
+    #add filtering backend and filter fields
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['task_category', 'task_priority'] 
+
     def get_queryset(self):
         """limit tasks to the authenticated user"""
         return UserTasks.objects.filter(user=self.request.user)
@@ -52,5 +57,5 @@ class UserTasksModelViewSet(viewsets.ModelViewSet):
         """automatically assign the task to the logged in user"""
         serializer.save(user=self.request.user)
 
-        
+
    
