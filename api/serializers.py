@@ -58,3 +58,11 @@ class UserTasksSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("high priority tasks MUST have a deadline")
         return data
         
+
+class GroupSerializer(serializers.ModelSerializer):
+    members = serializers.PrimaryKeyRelatedField(queryset=User.objects.all(), many=True)
+
+    class Meta:
+        model =Groups
+        fields = ['company_name', 'group_name', 'members']
+    

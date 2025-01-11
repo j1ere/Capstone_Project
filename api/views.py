@@ -9,7 +9,7 @@ from rest_framework.authtoken.models import Token
 from .serializers import *
 from .models import *
 from django_filters.rest_framework import DjangoFilterBackend
-
+from rest_framework.decorators import action
 
 class AuthViewSet(viewsets.ViewSet):
 
@@ -58,4 +58,26 @@ class UserTasksModelViewSet(viewsets.ModelViewSet):
         serializer.save(user=self.request.user)
 
 
-   
+class GroupModelViewSet(viewsets.ModelViewSet):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    queryset = Groups.objects.all()
+    serializer_class = GroupSerializer
+
+    @action(detail=True, methods=['POST'], url_path='add-admin')
+    def add_admin(self, request, pk=None):
+        """custom action to add an admin to the group"""
+        group = self.get_object()
+        user_id = request.data.get('user_id')
+        
+        if not user_id:
+            return Response({'error': 'User ID is required'}, status=400)
+        
+        try:
+            user = User.objects.get(id=user_id)
+            group.add_admin(user)
+            return Response({'message': f"{user.username} made group admin successfully"}, status=status.HTTP_201_CREATED)
+        except user.DoesNotExist:
+            return Response({'error': 'user does not exist'}, status=404)
+            

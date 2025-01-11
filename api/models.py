@@ -38,7 +38,7 @@ class Groups(models.Model):
     
     def add_admin(self, user):
         """assign the user as an admin of the group"""
-        Membership.objects.create(user=user, group=self, role='Admin')
+        Membership.objects.create(user=user, group=self, role__iexact='admin')
     
     def is_admin(self,user):
         """check if a user is an admin of a group"""
