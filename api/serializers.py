@@ -25,7 +25,7 @@ class UserTasksSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = UserTasks
-        fields = ['user', 'task_title', 'task_category', 'task_priority', 'task_description', 'deadline','is_complete']
+        fields = ['user', 'task_title', 'task_category', 'task_priority', 'task_description', 'deadline','is_complete', 'completed_at']
 
     def validate_task_category(self, value):
         """ensure that the task category is one of the allowed tasks"""

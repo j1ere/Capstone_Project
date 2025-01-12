@@ -37,6 +37,7 @@ class AuthViewSet(viewsets.ViewSet):
             return Response({"message":"login successful", 'token':token.key}, status=status.HTTP_200_OK)
         return Response({"error":"incorrect username or password"}, status=status.HTTP_401_UNAUTHORIZED)
     
+from django.utils import timezone
 
 class UserTasksModelViewSet(viewsets.ModelViewSet):
     """models viewset for user tasks"""
@@ -46,17 +47,63 @@ class UserTasksModelViewSet(viewsets.ModelViewSet):
     queryset = UserTasks.objects.all()
     serializer_class = UserTasksSerializer
 
-    #add filtering backend and filter fields
+    #filtering backend and filter fields
     filter_backends = [DjangoFilterBackend]
-    filterset_fields = ['task_category', 'task_priority'] 
+    filterset_fields = ['task_category', 'task_priority', 'is_complete', 'deadline']
+    ordering_fields = ['deadline', 'task_priority']
+    ordering = ['-deadline']  # Default ordering by deadline (descending)
 
     def get_queryset(self):
         """limit tasks to the authenticated user"""
-        return UserTasks.objects.filter(user=self.request.user)
+        queryset = UserTasks.objects.filter(user=self.request.user)
+
+         # Apply filters from query parameters
+        task_status = self.request.query_params.get('status', None)
+        if task_status:
+            if task_status.lower() == 'completed':
+                queryset = queryset.filter(is_complete=True)
+            elif task_status.lower() == 'pending':
+                queryset = queryset.filter(is_complete=False)
+        return queryset
     
     def perform_create(self, serializer):
         """automatically assign the task to the logged in user"""
         serializer.save(user=self.request.user)
+
+    @action(detail=True, methods=['PATCH'], url_path='mark-complete')
+    def mark_complete(self, request, pk=None):
+        """Mark a task as complete and record the completion time"""
+        task = self.get_object()
+
+        # Ensure that a completed task cannot be edited
+        if task.is_complete:
+            return Response({"detail": "Task is already marked as complete and cannot be edited."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Mark task as complete and set the completion time
+        task.is_complete = True
+        task.completed_at = timezone.now()
+        task.save()
+
+        return Response({"detail": "Task marked as complete", "completed_at": task.completed_at}, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['PATCH'], url_path='mark-incomplete')
+    def mark_incomplete(self, request, pk=None):
+        """Mark a task as incomplete"""
+        task = self.get_object()
+
+        # Ensure that the task can only be marked incomplete if it's already complete
+        if not task.is_complete:
+            return Response({"detail": "Task is already incomplete."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Mark task as incomplete and reset the completion time
+        task.is_complete = False
+        task.completed_at = None
+        task.save()
+
+        return Response({"detail": "Task marked as incomplete."}, status=status.HTTP_200_OK)
+
+
+
 
 
 class GroupModelViewSet(viewsets.ModelViewSet):

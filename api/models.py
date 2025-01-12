@@ -19,6 +19,7 @@ class UserTasks(models.Model):
     task_description = models.TextField(null=True, blank=True)
     deadline = models.DateTimeField(null=True, blank=True)
     is_complete = models.BooleanField(default=False)
+    completed_at = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
         return f"{self.task_tile}"
