@@ -24,5 +24,7 @@ poetry shell
 Run the Project Depending on your project, you might run a script or start a server. For example:
 python manage.py runserver
 
+## usage
+- **refer to usage.md on how to use the hosted version of this API**
 
 
