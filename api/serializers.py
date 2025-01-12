@@ -66,3 +66,14 @@ class GroupSerializer(serializers.ModelSerializer):
         model =Groups
         fields = ['company_name', 'group_name', 'members']
     
+
+class JoinRequestSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = JoinRequest
+        fields = ['user', 'group', 'is_approved', 'created_at']
+
+
+class MembershipSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Membership
+        fields = ['user', 'group', 'role']

@@ -38,11 +38,11 @@ class Groups(models.Model):
     
     def add_admin(self, user):
         """assign the user as an admin of the group"""
-        Membership.objects.create(user=user, group=self, role__iexact='admin')
+        Membership.objects.create(user=user, group=self, role='admin')
     
     def is_admin(self,user):
         """check if a user is an admin of a group"""
-        return Membership.objects.filter(user=user, role__ixact='admin').exists()
+        return Membership.objects.filter(user=user, role='admin').exists()
     
     def assign_task(self, user, target_user, task_title, task_description=None, priority='medium', deadline=None):
         """assign a task to a member in a group"""

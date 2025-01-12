@@ -81,3 +81,92 @@ class GroupModelViewSet(viewsets.ModelViewSet):
         except user.DoesNotExist:
             return Response({'error': 'user does not exist'}, status=404)
             
+
+class JoinRequestViewSet(viewsets.ModelViewSet):
+    queryset = JoinRequest.objects.all()
+    serializer = JoinRequestSerializer
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def create(self, request, *args, **kwargs):
+        user = request.user
+        group_id = request.data.get('group')
+        
+        if not group_id:
+            return Response({"error": "Group ID is required"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            group = Groups.objects.get(id=group_id)
+        except Groups.DoesNotExist:
+            return Response({"error": "Group not found"}, status=status.HTTP_404_NOT_FOUND)
+        
+        # Check if the user is already a member or has a pending join request
+        if Membership.objects.filter(user=user, group=group).exists():
+            return Response({"error": "User is already a member of the group"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        if JoinRequest.objects.filter(user=user, group=group).exists():
+            return Response({"error": "Join request already exists"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Create the join request
+        join_request = JoinRequest.objects.create(user=user, group=group)
+        
+        return Response({"message": "Join request sent successfully"}, status=status.HTTP_201_CREATED)
+
+
+class GroupAdminViewSet(viewsets.ViewSet):
+     authentication_classes = [TokenAuthentication]
+     permission_classes = [IsAuthenticated]
+
+     @action(detail=True, methods=['post'], url_path='approve-join-request')
+     def approve_join_request(self, request, pk=None):
+         """approve a join request for a group by group admin"""
+         try:
+             group = Groups.objects.get(id=pk)
+         except Groups.DoesNotExist:
+             return Response({'error': 'group not found'}, status=status.HTTP_404_NOT_FOUND)
+         
+         if not group.is_admin(request.user):
+             return Response({'error': 'only admins can approve join requests'}, status=status.HTTP_403_FORBIDDEN)
+         
+         user_id = request.data.get('user_id')
+         if not user_id:
+             return Response({'error': 'user id is required'}, status=status.HTTP_400_BAD_REQUEST)
+         
+         join_request = JoinRequest.objects.filter(user_id=user_id, group=group, is_approved=False).first()
+
+         if not join_request:
+             return Response({'error': 'join request not found or already approved'})
+
+         #approve the join request
+         Membership.objects.create(user=join_request.user, group=group, role='member')
+         join_request.is_approved=True
+         join_request.save()
+
+         return Response({'message': 'join request approved'}, status=status.HTTP_200_OK)
+
+     @action(detail=True, methods=['post'], url_path='deny-join-request')
+     def deny_join_request(self, request, pk=None):
+         """deny a join request for the group by group admin"""
+         try:
+            group = Groups.objects.get(id=pk)
+         except Groups.DoesNotExist:
+            return Response({"error": "Group not found"}, status=status.HTTP_404_NOT_FOUND)
+
+         if not group.is_admin(request.user):
+            return Response({"error": "Only admins can deny join requests"}, status=status.HTTP_403_FORBIDDEN)
+
+         user_id = request.data.get('user_id')
+         if not user_id:
+            return Response({"error": "User ID is required"}, status=status.HTTP_400_BAD_REQUEST)
+
+         join_request = JoinRequest.objects.filter(user_id=user_id, group=group, is_approved=False).first()
+
+         if not join_request:
+            return Response({"error": "Join request not found or already approved"}, status=status.HTTP_404_NOT_FOUND)
+
+         # Deny the join request
+         join_request.delete()
+
+         return Response({"message": "Join request denied"}, status=status.HTTP_200_OK)
+                   
+            

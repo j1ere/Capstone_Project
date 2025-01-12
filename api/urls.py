@@ -5,6 +5,9 @@ from . import views
 router = DefaultRouter()
 router.register(r'usertasks', views.UserTasksModelViewSet, basename='usertasks')
 router.register(r'groups', views.GroupModelViewSet, basename='groups')
+router.register(r'join-requests', views.JoinRequestViewSet, basename='join-requests')
+router.register(r'groups', views.GroupAdminViewSet, basename='group-admin')
+
 
 urlpatterns=[
     path('auth/register/', views.AuthViewSet.as_view({'post': 'register'}), name='register'),
