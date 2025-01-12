@@ -10,7 +10,7 @@ from .serializers import *
 from .models import *
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.decorators import action
-from rest_framework.exceptions import NotFound
+from rest_framework.exceptions import NotFound, PermissionDenied
 
 class AuthViewSet(viewsets.ViewSet):
 
@@ -181,5 +181,64 @@ class GroupAdminViewSet(viewsets.ViewSet):
         pending_requests = JoinRequest.objects.filter(group=group, is_approved=False)
         serializer = JoinRequestSerializer(pending_requests, many=True)
         return Response(serializer.data, status=200)
+     
+    
+     @action(detail=True, methods=['GET'], url_path='my-tasks')
+     def my_tasks(self, request, pk=None):
+        """Allow a user to view tasks assigned to them"""
+        user = request.user
+        tasks = GroupTasks.objects.filter(assigned_to=user)
+        serializer = GroupTaskSerializer(tasks, many=True)
+        return Response(serializer.data, status=200)
 
-          
+
+from .permissions import IsGroupAdminOrReadOnly
+
+class GroupTaskModelViewSet(viewsets.ModelViewSet):
+    queryset = GroupTasks.objects.all()
+    serializer_class = GroupTaskSerializer
+    permission_classes = [IsAuthenticated, IsGroupAdminOrReadOnly]
+
+    def get_queryset(self):
+        """
+        Filter tasks based on the group ID from the URL.
+        """
+        group_id = self.kwargs['group_pk']
+        return GroupTasks.objects.filter(group_id=group_id)
+
+    def perform_create(self, serializer):
+        """
+        Assign the task to the current authenticated user when creating.
+        """
+        serializer.save(assigned_to=self.request.user)
+
+# class GroupAdminViewSet(viewsets.ModelViewSet):
+#     queryset = Groups.objects.all()
+#     serializer_class = GroupSerializer
+#     authentication_classes = [TokenAuthentication]
+#     permission_classes = [IsAuthenticated]
+
+
+#     @action(detail=True, methods=['POST'], url_path='create-task')
+#     def create_task(self, request, pk=None):
+#         """Allow an admin to create a task for a group"""
+#         group = self.get_object()
+#         user = request.user
+
+#         # Check if the user is an admin of the group
+#         if not group.is_admin(user):
+#             raise PermissionDenied("You must be an admin to create tasks.")
+
+#         serializer = GroupTaskSerializer(data=request.data)
+#         if serializer.is_valid():
+#             serializer.save()
+#             return Response(serializer.data, status=201)
+#         return Response(serializer.errors, status=400)
+
+#     @action(detail=True, methods=['GET'], url_path='my-tasks')
+#     def my_tasks(self, request, pk=None):
+#         """Allow a user to view tasks assigned to them"""
+#         user = request.user
+#         tasks = GroupTasks.objects.filter(assigned_to=user)
+#         serializer = GroupTaskSerializer(tasks, many=True)
+#         return Response(serializer.data, status=200)

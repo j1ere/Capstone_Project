@@ -7,6 +7,8 @@ router.register(r'usertasks', views.UserTasksModelViewSet, basename='usertasks')
 router.register(r'groups', views.GroupModelViewSet, basename='groups')
 router.register(r'join-requests', views.JoinRequestViewSet, basename='join-requests')
 router.register(r'groups', views.GroupAdminViewSet, basename='group-admin')
+router.register(r'groups/(?P<group_pk>\d+)/grouptasks', views.GroupTaskModelViewSet, basename='group-task')
+
 
 
 urlpatterns=[
