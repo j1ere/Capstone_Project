@@ -27,7 +27,7 @@ SECRET_KEY = "django-insecure-@#!hijgl%4ecsjje^hf$%$vtn87%bv!*ap+^_59n-qc3fs@65^
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ['task-management-api-app-cd71004e7c12.herokuapp.com',]
 
 
 # Application definition
@@ -153,5 +153,10 @@ SECURE_CONTENT_TYPE_NOSNIFF = True
 SECURE_SSL_REDIRECT = True
 CSRF_COOKIE_SECURE = True
 SESSION_COOKIE_SECURE = True
+# Ensure that HTTP Strict Transport Security (HSTS) is properly configured
+SECURE_HSTS_SECONDS = 31536000  # one year
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+SECURE_HSTS_PRELOAD = True
 
 django_heroku.settings(locals())
+
