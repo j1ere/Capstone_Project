@@ -10,6 +10,7 @@ from .serializers import *
 from .models import *
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.decorators import action
+from rest_framework.exceptions import NotFound
 
 class AuthViewSet(viewsets.ViewSet):
 
@@ -169,4 +170,16 @@ class GroupAdminViewSet(viewsets.ViewSet):
 
          return Response({"message": "Join request denied"}, status=status.HTTP_200_OK)
                    
-            
+     @action(detail=True, methods=['GET'], url_path='pending-join-requests')
+     def pending_join_requests(self, request, pk=None):
+        """List all pending join requests for a group"""
+        try:
+            group = Groups.objects.get(pk=pk)
+        except Groups.DoesNotExist:
+            raise NotFound("Group not found.")
+    
+        pending_requests = JoinRequest.objects.filter(group=group, is_approved=False)
+        serializer = JoinRequestSerializer(pending_requests, many=True)
+        return Response(serializer.data, status=200)
+
+          
