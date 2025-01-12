@@ -27,7 +27,7 @@ SECRET_KEY = "django-insecure-@#!hijgl%4ecsjje^hf$%$vtn87%bv!*ap+^_59n-qc3fs@65^
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['task-management-api-app-cd71004e7c12.herokuapp.com',]
+ALLOWED_HOSTS = ['task-management-api-app-cd71004e7c12.herokuapp.com']
 
 
 # Application definition

@@ -1,6 +1,7 @@
 # API Endpoints Documentation
 
 ## Authentication Endpoints
+### all urls start with a `/api/`
 
 ### `POST /auth/register/`
 - **Description**: Register a new user.
@@ -8,6 +9,7 @@
   ```json
   {
       "username": "string",
+      "email": "email",
       "password": "string"
   }
   ```
@@ -27,6 +29,7 @@
 - **Response**:
   - `200 OK`: Login successful with token.
   - `401 Unauthorized`: Incorrect username or password.
+  - insert the token in your header for authentication
 
 ---
 
@@ -47,15 +50,26 @@
 - **Request Body**:
   ```json
   {
-      "title": "string",
-      "description": "string",
-      "task_category": "string",
-      "task_priority": "string",
-      "deadline": "YYYY-MM-DDTHH:MM:SSZ"
+      "task_title": "Prepare Report",
+      "task_category": "work",
+      "task_priority": "medium",
+      "task_description": "Complete the quarterly report.",
+      "deadline": "2025-02-20T10:00:00Z"
   }
   ```
 - **Response**:
-  - `201 Created`: Task created successfully.
+  ```json
+  {
+        "task_title": "Prepare Report",
+        "task_category": "Work",
+        "task_priority": "medium",
+        "task_description": "Complete the quarterly report.",
+        "deadline": "2025-02-20T10:00:00Z",
+        "is_complete": false,
+        "completed_at": null
+  }
+
+  ```
 
 ### `PATCH /usertasks/{id}/mark-complete/`
 - **Description**: Mark a task as complete.
@@ -69,9 +83,23 @@
   - `200 OK`: Task marked as incomplete.
   - `400 Bad Request`: Task is already incomplete.
 
+### `GET api/usertasks/?task_category=personal&ordering=-deadline`
+
+### `GET api/usertasks/?is_complete=true`
+
+### `GET api/usertasks/?is_complete=false`
+
+### `GET api/usertasks/?itask_priority=low`
 ---
 
 ## Group Endpoints
+- **Create Two Accounts**:
+    - Register/Login User A (the user who will send the join request).
+    - Register/Login User B (the user who will act as the group admin).
+    - insert the token in your header for authentication
+
+- **Step 2: Create a Group with User B (Admin)**:
+
 
 ### `GET /groups/`
 - **Description**: Retrieve a list of groups.
@@ -83,12 +111,14 @@
 - **Request Body**:
   ```json
   {
-      "name": "string",
-      "description": "string"
+     "company_name": "JeremyTech",
+     "group_name": "Co-founders",
+     "members": [3,] //members in a list
   }
+
   ```
 - **Response**:
-  - `201 Created`: Group created successfully.
+  - `200 OK`: List of the group.
 
 ### `POST /groups/{id}/add-admin/`
 - **Description**: Add a user as an admin to a group.
@@ -99,7 +129,7 @@
   }
   ```
 - **Response**:
-  - `201 Created`: User added as admin.
+  - `201 Created`: User added as admin successfully.
   - `400 Bad Request`: User ID not provided.
   - `404 Not Found`: User does not exist.
 
@@ -112,8 +142,10 @@
 - **Request Body**:
   ```json
   {
-      "group": "integer"
+     "user": "<user id>",
+     "group": "<group id>"
   }
+
   ```
 - **Response**:
   - `201 Created`: Join request sent successfully.
@@ -153,6 +185,22 @@
 - **Response**:
   - `200 OK`: List of pending join requests.
 
+### `POST /groups/{id}/approve-join-requests/`
+- **Request Body**:
+  ```json
+  {
+      "user_id": "integer"
+  }
+  ```
+
+### `POST /groups/{id}/deny-join-requests/`
+- **Request Body**:
+  ```json
+  {
+      "user_id": "integer"
+  }
+  ```
+
 ---
 
 ## Group Task Endpoints
@@ -166,15 +214,21 @@
 - **Description**: Create a new task for a group.
 - **Request Body**:
   ```json
-  {
-      "title": "string",
-      "description": "string",
-      "assigned_to": "integer",
-      "due_date": "YYYY-MM-DDTHH:MM:SSZ"
-  }
+   {
+     "task_title": "Fix Bugs",
+     "assigned_to": 3,  // ID of the member
+     "task_priority": "high",
+     "task_description": "Resolve critical bugs in the system",
+     "deadline": "2025-01-15T18:00:00Z"
+   }
+
   ```
 - **Response**:
   - `201 Created`: Task created successfully.
+
+### `DELETE api/groups/1/grouptasks/5/`
+
+### `PUT api/groups/1/grouptasks/5/`
 
 ### `GET /groups/{id}/my-tasks/`
 - **Description**: Retrieve tasks assigned to the authenticated user within a group.

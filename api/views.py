@@ -132,7 +132,7 @@ class GroupModelViewSet(viewsets.ModelViewSet):
 
 class JoinRequestViewSet(viewsets.ModelViewSet):
     queryset = JoinRequest.objects.all()
-    serializer = JoinRequestSerializer
+    serializer_class = JoinRequestSerializer
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
 
@@ -257,7 +257,14 @@ class GroupTaskModelViewSet(viewsets.ModelViewSet):
         """
         Assign the task to the current authenticated user when creating.
         """
-        serializer.save(assigned_to=self.request.user)
+        group_id = self.kwargs['group_pk']
+        try:
+            # Retrieve a single instance of the group
+            group = Groups.objects.get(id=group_id)
+        except Groups.DoesNotExist:
+            raise serializers.ValidationError({"group": "The specified group does not exist."})
+
+        serializer.save(group=group,assigned_to=self.request.user)
 
 # class GroupAdminViewSet(viewsets.ModelViewSet):
 #     queryset = Groups.objects.all()

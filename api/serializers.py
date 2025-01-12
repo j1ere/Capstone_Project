@@ -25,9 +25,9 @@ class UserTasksSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = UserTasks
-        fields = ['task_title', 'task_category', 'task_priority', 'task_description', 'deadline', 'is_complete', 'completed_at']
-        read_only_fields = ['is_complete', 'completed_at']
-        
+        fields = ['id','task_title', 'task_category', 'task_priority', 'task_description', 'deadline', 'is_complete', 'completed_at']
+        read_only_fields = ['id','is_complete', 'completed_at']
+
     def validate_task_category(self, value):
         """ensure that the task category is one of the allowed tasks"""
         valid_categories = dict(UserTasks.TASK_TYPE).keys()
@@ -65,7 +65,8 @@ class GroupSerializer(serializers.ModelSerializer):
 
     class Meta:
         model =Groups
-        fields = ['company_name', 'group_name', 'members']
+        fields = ['id','company_name', 'group_name', 'members']
+        read_only_fields = ['id']
     
 
 class JoinRequestSerializer(serializers.ModelSerializer):
@@ -80,6 +81,8 @@ class MembershipSerializer(serializers.ModelSerializer):
         fields = ['user', 'group', 'role']
 
 class GroupTaskSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = GroupTasks
-        fields = '__all__'
+        fields = ['id','group','task_title', 'assigned_to','task_priority', 'task_description', 'deadline', 'is_complete' ]
+        read_only_fields = ['id','group','is_complete']
