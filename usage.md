@@ -1,8 +1,11 @@
 # API Endpoints Documentation
 
+## hosted at https://task-management-api-app-cd71004e7c12.herokuapp.com/
+
 ## Authentication Endpoints
 ### all urls start with a `/api/`
-
+- **eg https://task-management-api-app-cd71004e7c12.herokuapp.com/api/auth/register/**
+- ** use postman for testing **
 ### `POST /auth/register/`
 - **Description**: Register a new user.
 - **Request Body**:
